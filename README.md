@@ -9,6 +9,7 @@
 ```
 .
 ├── README.md
+├── .gitignore
 └── code
     └── python-p2p
         .
@@ -21,3 +22,7 @@
 ### P2P Framework
 
 [python-p2p](https://github.com/GianisTsol/python-p2p)
+
+### gitignore
+
+[A collection of .gitignore templates](https://github.com/github/gitignore)

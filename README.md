@@ -6,24 +6,34 @@
 
 ## File Structure
 
-```
+```bash
 .
 ├── README.md
 ├── .gitignore
 └── code
-    └── python-p2p
-        .
-        .
-        .
+    ├── local_config.py      # store credentials
+    ├── IoT
+    ├── scripts
+    │   └── sampling.py      # sample images from datasets
+    └── python-p2p           # p2p framework
+```
+
+## local_config.py
+
+```python
+from os import path
+
+ROOT_PATH = path.join("path to root folder of datasets")
+DESTINATION_PATH = path.join("root to destination of sampled images")
 ```
 
 ## Dataset
 
-The photos without accidents are from [Traffic Detection Project](https://www.kaggle.com/datasets/yusufberksardoan/traffic-detection-project/data).
+The images without accidents are from [Traffic Detection Project](https://www.kaggle.com/datasets/yusufberksardoan/traffic-detection-project/data).
 
-The photos with accidents are from [traffic accidents](https://www.kaggle.com/datasets/vitthnh/traffic-accidents).
+The images with accidents are from [traffic accidents](https://www.kaggle.com/datasets/vitthnh/traffic-accidents).
 
-These two datasets both are having the following file structure:
+These two datasets are sharing the following file structure:
 ```bash
 .                    # root
 ├── ...              # meta info

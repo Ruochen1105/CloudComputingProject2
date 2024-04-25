@@ -17,6 +17,29 @@
         .
 ```
 
+## Dataset
+
+The photos without accidents are from [Traffic Detection Project](https://www.kaggle.com/datasets/yusufberksardoan/traffic-detection-project/data).
+
+The photos with accidents are from [traffic accidents](https://www.kaggle.com/datasets/vitthnh/traffic-accidents).
+
+These two datasets both are having the following file structure:
+```bash
+.                    # root
+├── ...              # meta info
+├── test
+│   ├── labels       # not used
+│   └── images
+│       ├── ...
+│       └── {image_name}.jpg
+├── trian
+│   └── ...
+└── valid
+    └── ...
+```
+
+The dataset used in this project is randomly sampled from the two public datasets among `train`, `valid`, and `test`. The script used is `./code/scripts/sampling.py`.
+
 ## References
 
 ### P2P Framework

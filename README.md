@@ -31,9 +31,9 @@ DESTINATION_PATH = path.join("root to destination of sampled images")
 
 The images without accidents are from [Traffic Detection Project](https://www.kaggle.com/datasets/yusufberksardoan/traffic-detection-project/data).
 
-The images with accidents are from [traffic accidents](https://www.kaggle.com/datasets/vitthnh/traffic-accidents).
+The images with accidents are from [Vehicle Crash Dataset Computer Vision Project](https://universe.roboflow.com/object-detection-3iugc/vehicle-crash-dataset).
 
-These two datasets are sharing the following file structure:
+These two datasets are sharing the following YOLOv8 file structure, except that "Vehicle Crash Dataset Computer Vision Project" does not have "valid" and "test":
 ```bash
 .                    # root
 ├── ...              # meta info
@@ -48,7 +48,7 @@ These two datasets are sharing the following file structure:
     └── ...
 ```
 
-The dataset used in this project is randomly sampled from the two public datasets among `train`, `valid`, and `test`. The script used is `./code/scripts/sampling.py`.
+The dataset used in this project is randomly sampled from all images of the two public datasets. The script used is `./code/scripts/sampling.py`.
 
 ## References
 

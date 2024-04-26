@@ -1,6 +1,7 @@
 import os
 import random
 import shutil
+from tqdm import tqdm
 
 from local_config import ROOT_PATH, DESTINATION_PATH
 NUMBER_OF_PHOTOS = 1000
@@ -18,5 +19,5 @@ if __name__ == "__main__":
             for image in images:
                 image_paths.append(os.path.join(image_folder_path, image))
     sampled = random.sample(image_paths, k=NUMBER_OF_PHOTOS)
-    for id, sample in enumerate(sampled):
+    for id, sample in tqdm(enumerate(sampled), total=len(sampled), desc="Copying"):
         shutil.copyfile(src=sample, dst=os.path.join(DESTINATION_PATH, str(id) + ".png"))

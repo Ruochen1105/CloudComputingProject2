@@ -11,9 +11,9 @@
 ├── README.md
 ├── .gitignore
 └── code
-    ├── local_config.py      # store credentials
     ├── IoT
     ├── scripts
+    │   ├── local_config.py  # store credentials
     │   └── sampling.py      # sample images from datasets
     └── python-p2p           # p2p framework
 ```

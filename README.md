@@ -6,7 +6,7 @@
 
 ## File Structure
 
-```bash
+```
 .
 ├── README.md
 ├── .gitignore
@@ -34,7 +34,7 @@ The images without accidents are from [Traffic Detection Project](https://www.ka
 The images with accidents are from [Vehicle Crash Dataset Computer Vision Project](https://universe.roboflow.com/object-detection-3iugc/vehicle-crash-dataset).
 
 These two datasets are sharing the following YOLOv8 file structure, except that "Vehicle Crash Dataset Computer Vision Project" does not have "valid" and "test":
-```bash
+```
 .                    # root
 ├── ...              # meta info
 ├── test

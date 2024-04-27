@@ -12,21 +12,32 @@ class _MyHTTPServer(BaseHTTPRequestHandler):
             if _MASTER == [None, None]:
                 _MASTER[0] = self.client_address[0]
                 _MASTER[1] = self.headers["port"]
-            self.send_header("Master_host", _MASTER[0])
-            self.send_header("Master_port", _MASTER[1])
-            self.end_headers()
-            self.wfile.write(b"Please find the host and port of the master in the header.")
+                self.send_header("Master", "True")
+                self.end_headers()
+                self.wfile.write(b"You are the master node.")
+            else:
+                self.send_header("Master_host", _MASTER[0])
+                self.send_header("Master_port", _MASTER[1])
+                self.send_header("Master", "False")
+                self.end_headers()
+                self.wfile.write(b"Please find the host and port of the master in the header.")
         elif self.path == '/health':
             self.send_response(200)
             self.send_header('Content-type', 'text/plain')
             self.end_headers()
             self.wfile.write(b"The access server is working properly.")
         elif self.path == "/leave":
-            self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            _MASTER = [None, None]
-            self.wfile.write(b"Left.")
+            if _MASTER[0] == self.client_address[0]:
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                _MASTER = [None, None]
+                self.wfile.write(b"Left.")
+            else:
+                self.send_response(403)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(b"Forbidden.")
         else:
             self.send_response(404)
             self.send_header('Content-type', 'text/plain')

@@ -1,6 +1,8 @@
 import requests
 import socket
 
+from python_p2p.node import Node
+
 def find_available_port() -> int:
     # Create a socket object
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -35,4 +37,4 @@ def send_get_request(hostname: str, port: int, avail_port: int) -> None:
         print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    print(find_available_port())
+    pass

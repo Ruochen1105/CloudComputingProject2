@@ -20,7 +20,8 @@ class TrafficAccidentSharingNode(Node):
             print("You are the master. Waiting for connections from peers...")
         if self.master:
             self.run()
-        elif not self.master:
+        else:
+            self.run()
             self.connect_with_node(host=self.master_host, port=int(self.master_port))
 
 
@@ -57,6 +58,11 @@ class TrafficAccidentSharingNode(Node):
                 print(f"GET request failed with status code {response.status_code}.")
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
+
+
+    def my_start(self):
+        pass
+        # TODO: starts the node while accepting inputs from cmd (and invoke corresponding methods)
 
 if __name__ == "__main__":
     myNode = TrafficAccidentSharingNode()

@@ -182,10 +182,10 @@ class Node(threading.Thread):
             self.debug_print("Peers limit reached.")
             return True
 
-        for node in self.nodes_connected:
-            if node.host == host:
-                print("[connect_to]: Already connected with this node.")
-                return True
+        # for node in self.nodes_connected:
+        #     if node.host == host:
+        #         print("[connect_to]: Already connected with this node.")
+        #         return True
 
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -436,11 +436,11 @@ class Node(threading.Thread):
 
     def check_ip_to_connect(self, ip):
         if (
-            ip not in self.peers
-            and ip != ""
-            and ip != self.ip
-            and ip != self.local_ip
-            and ip not in self.banned
+            # ip not in self.peers
+            # and ip != ""
+            # and ip != self.ip
+            # and ip != self.local_ip
+            ip not in self.banned
         ):
             return True
         else:

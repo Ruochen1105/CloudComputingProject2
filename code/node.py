@@ -12,12 +12,16 @@ class TrafficAccidentSharingNode(Node):
         master = self.ask_master(avail_port=port)
         if master[0]:
             self.master = False
-            self.master_host = master[0]
-            self.master_port = master[1]
+            self.master_host, self.master_port = master
             print("You are not the master. Connecting to the master node...")
         else:
             self.master = True
+            self.master_host, self.master_port = None, None
             print("You are the master. Waiting for connections from peers...")
+        if self.master:
+            self.run()
+        elif not self.master:
+            self.connect_to(host=self.master_host, port=int(self.master_port))
 
 
     def find_available_port(self) -> int:
@@ -38,10 +42,10 @@ class TrafficAccidentSharingNode(Node):
 
 
     def ask_master(self, avail_port: int, hostname: str="127.0.0.1", port: int=8421) -> tuple:
-        url = f"http://{hostname}:{port}/"    # Construct the URL using the provided hostname and port
-        headers = {"port": str(avail_port)}    # The port to receive connection from peers.
+        url = f"http://{hostname}:{port}/"
+        headers = {"port": str(avail_port)}
         try:
-            response = requests.get(url, headers=headers)  # Send the GET request
+            response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 if response.headers["Master"] == "True":
                     return (None, None)

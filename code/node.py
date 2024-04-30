@@ -1,7 +1,7 @@
 import requests
 import socket
 
-from python_p2p.node import Node
+from p2pnetwork.node import Node
 
 
 class TrafficAccidentSharingNode(Node):
@@ -21,7 +21,7 @@ class TrafficAccidentSharingNode(Node):
         if self.master:
             self.run()
         elif not self.master:
-            self.connect_to(host=self.master_host, port=int(self.master_port))
+            self.connect_with_node(host=self.master_host, port=int(self.master_port))
 
 
     def find_available_port(self) -> int:

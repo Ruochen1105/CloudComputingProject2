@@ -19,9 +19,9 @@ class TrafficAccidentSharingNode(Node):
             self.master_host, self.master_port = None, None
             print("You are the master. Waiting for connections from peers...")
         if self.master:
-            self.run()
+            self.start()
         else:
-            self.run()
+            self.start()
             self.connect_with_node(host=self.master_host, port=int(self.master_port))
 
 

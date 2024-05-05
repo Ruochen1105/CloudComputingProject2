@@ -1,3 +1,4 @@
+import random
 import requests
 import socket
 from threading import Thread
@@ -16,12 +17,15 @@ class TrafficAccidentSharingNode(Node):
         self.message = None
         self.message_trigger = False
         self.roles = [0, 0, 0] # IoT, ML, AR
+        self.role_list = {"I": [], "M": [], "A": []}
+        self.nodes_map = {}
 
         master = self.ask_master(avail_port=port)
         if master[0]:
             print("You are not the master. Connecting to the master node...")
         else:
             print("You are the master. Waiting for connections from peers...")
+            self.roles = [1, 1, 1]
         self.my_start(master=master)
 
 
@@ -127,10 +131,28 @@ class TrafficAccidentSharingNode(Node):
             return None
 
 
+    def inbound_node_connected(self, node):
+        """
+        When receiving a connection, makes the connection accessable thru host+port
+        """
+        self.nodes_map[f"{node.host}:{node.port}"] = node
+        return super().inbound_node_connected(node)
+
+
+    def outbound_node_connected(self, node):
+        """
+        When establishing a connection, makes the connection accessable thru host+port
+        """
+        self.nodes_map[f"{node.host}:{node.port}"] = node
+        return super().outbound_node_connected(node)
+
+
     def node_message(self, node, data):
+        """
+        Override to trigger the main loop functions
+        """
         self.message = (node, data)
         self.message_trigger = True
-        # print(f"{node.host}:{node.port} send us {data}.")
 
 
     def my_start(self, master: tuple):
@@ -139,25 +161,46 @@ class TrafficAccidentSharingNode(Node):
             while True:
                 if self.message_trigger:
                     print(f"{self.message[0].host}:{self.message[0].port}>> {self.message[1]}.")
+
+                    # As the master, receiving node's request for a role
+                    if message_class.ask_role in self.message[1] and not master[0]:
+                        node_specifier = f"{self.message[0].host}:{self.message[0].port}"
+                        chosen_role = random.choice(["I", "A", "M"])
+                        self.role_list[chosen_role].append(node_specifier)
+                        self.send_to_node(n=self.nodes_map[node_specifier], data=message_class.set_role+chosen_role)
+                        # print(f"Giving {node_specifier} the role of {chosen_role}.", self.role_list)
+
+                    # As a non-master, receiving a role from the master
+                    if message_class.set_role in self.message[1] and master[0]:
+                        role = self.message[1][-1]
+                        if role == "I":
+                            self.roles[0] = 1
+                        elif role == "M":
+                            self.roles[1] = 1
+                        elif role == "A":
+                            self.roles[2] = 1
+                        # print(f"Your role is {role}.", self.roles)
+
+
+                    # reset the message and message_trigger
                     self.message = None
                     self.message_trigger = False
+
         self.start()
         if master[0]:
             master_node = self.connect_with_node(master[0], int(master[1]))
+            self.send_to_node(master_node, message_class.ask_role)
         else:
             pass
-            # TODO Master functionality: assigning "roles" -- IoT, ML, XR
-                # each node knows its role when it first connects to the master node
-                # each node also gets a full list of other nodes when it first connects to the master node
-                # whenever a node connects to the master node, the master node broadcast its host:port to other nodes
+            # TODO
                 # IoT nodes calls the IoT services, and sends request to ML peers
                 # ML nodes calls the ML services
                 # whenever a node wants traffic info, it calls the XR nodes
                 # XR nodes calls the XR services and sends the image to the requester
                 # the Master node by default takes all responsibilities to avoid cases where not enough nodes are present
 
-        t = Thread(target=receiver)
-        t.start()
+        t_receive = Thread(target=receiver)
+        t_receive.start()
 
         while True:
             input_command = input(

@@ -25,7 +25,7 @@ class TrafficAccidentSharingNode(Node):
             print("You are not the master. Connecting to the master node...")
         else:
             print("You are the master. Waiting for connections from peers...")
-            self.roles = [1, 1, 1]
+            self.roles = [1, 1, 1] # the master node can do everything
         self.my_start(master=master)
 
 
@@ -197,7 +197,6 @@ class TrafficAccidentSharingNode(Node):
                 # ML nodes calls the ML services
                 # whenever a node wants traffic info, it calls the XR nodes
                 # XR nodes calls the XR services and sends the image to the requester
-                # the Master node by default takes all responsibilities to avoid cases where not enough nodes are present
 
         t_receive = Thread(target=receiver)
         t_receive.start()
@@ -216,8 +215,10 @@ Please input the command:\n
                     self.send_to_node(master_node, message_class.leave + str(self.roles))
                     self.node_request_to_stop()
                 else:
-                    # TODO From all inbound nodes randomly select one to be the new master
+                    # TODO
+                        # From all inbound nodes randomly select one to be the new master
                         # Inform everyone that the master should change
+                        # Tell the access server that the master changes
                     self.node_request_to_stop()
 
 

@@ -182,6 +182,10 @@ class TrafficAccidentSharingNode(Node):
                         # print(f"Your role is {role}.", self.roles)
 
 
+                    # As the master, receiving node's request for a service
+                    # TODO
+
+
                     # reset the message and message_trigger
                     self.message = None
                     self.message_trigger = False

@@ -140,11 +140,29 @@ class TrafficAccidentSharingNode(Node):
                     self.message_trigger = False
         if master[0]:
             master_node = self.connect_with_node(master[0], int(master[1]))
+        else:
+            pass
+            # TODO Master functionality: assigning "roles" -- IoT, ML, XR
+                # each node knows its role when it first connects to the master node
+                # each node also gets a full list of other nodes when it first connects to the master node
+                # whenever a node connects to the master node, the master node broadcast its host:port to other nodes
+                # IoT nodes calls the IoT services, and sends request to ML peers
+                # ML nodes calls the ML services
+                # whenever a node wants traffic info, it calls the XR nodes
+                # XR nodes calls the XR services and sends the image to the requester
+                # the Master node by default takes all responsibilities to avoid cases where not enough nodes are present
         self.start()
         t = Thread(target=logger)
         t.start()
         while True:
-            input_command = input("Please input the command: [S]end the testing message to master >>\n")
+            input_command = input(
+"""
+Please input the command:\n
+\t [Q]uit the network\n
+\t [R]equest accident info\n
+>>\t
+"""
+            )
             if input_command == "S":
                 self.send_to_node(master_node, "testing")
 

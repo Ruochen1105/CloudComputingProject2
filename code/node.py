@@ -3,7 +3,8 @@ import socket
 from threading import Thread
 
 from p2pnetwork.node import Node
-from p2pnetwork.nodeconnection import   NodeConnection
+from p2pnetwork.nodeconnection import NodeConnection
+import message_class
 
 
 class TrafficAccidentSharingNode(Node):
@@ -14,6 +15,7 @@ class TrafficAccidentSharingNode(Node):
 
         self.message = None
         self.message_trigger = False
+        self.roles = [0, 0, 0] # IoT, ML, AR
 
         master = self.ask_master(avail_port=port)
         if master[0]:
@@ -132,12 +134,14 @@ class TrafficAccidentSharingNode(Node):
 
 
     def my_start(self, master: tuple):
-        def logger():
+
+        def receiver():
             while True:
                 if self.message_trigger:
-                    print(f"{self.message[0].host}:{self.message[0].port} send us {self.message[1]}.")
+                    print(f"{self.message[0].host}:{self.message[0].port}>> {self.message[1]}.")
                     self.message = None
                     self.message_trigger = False
+        self.start()
         if master[0]:
             master_node = self.connect_with_node(master[0], int(master[1]))
         else:
@@ -151,9 +155,10 @@ class TrafficAccidentSharingNode(Node):
                 # whenever a node wants traffic info, it calls the XR nodes
                 # XR nodes calls the XR services and sends the image to the requester
                 # the Master node by default takes all responsibilities to avoid cases where not enough nodes are present
-        self.start()
-        t = Thread(target=logger)
+
+        t = Thread(target=receiver)
         t.start()
+
         while True:
             input_command = input(
 """
@@ -163,8 +168,14 @@ Please input the command:\n
 >>\t
 """
             )
-            if input_command == "S":
-                self.send_to_node(master_node, "testing")
+            if input_command == "Q":
+                if master[0]:
+                    self.send_to_node(master_node, message_class.leave + str(self.roles))
+                    self.node_request_to_stop()
+                else:
+                    # TODO From all inbound nodes randomly select one to be the new master
+                        # Inform everyone that the master should change
+                    self.node_request_to_stop()
 
 
 if __name__ == "__main__":

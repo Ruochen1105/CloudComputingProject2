@@ -16,17 +16,17 @@ class TrafficAccidentSharingNode(Node):
 
         self.message = None
         self.message_trigger = False
-        self.roles = [0, 0, 0] # IoT, ML, AR
+        self.role = None # [I]oT, [M]L, [A]R
         self.role_list = {"I": [], "M": [], "A": []}
         self.nodes_map = {}
 
-        master = self.ask_master(avail_port=port)
-        if master[0]:
+        self.master = self.ask_master(avail_port=port)
+        if self.master[0]:
             print("You are not the master. Connecting to the master node...")
         else:
             print("You are the master. Waiting for connections from peers...")
             self.roles = [1, 1, 1] # the master node can do everything
-        self.my_start(master=master)
+        self.my_start()
 
 
     def find_available_port(self) -> int:
@@ -155,77 +155,93 @@ class TrafficAccidentSharingNode(Node):
         self.message_trigger = True
 
 
-    def my_start(self, master: tuple):
+    def msg_receiver(self):
+        while True and not self.terminate_flag.is_set():
+            if self.message_trigger:
+                print(f"[Testing msg] {self.message[0].host}:{self.message[0].port}>> {self.message[1]}.")
 
-        def receiver():
-            while True:
-                if self.message_trigger:
-                    print(f"{self.message[0].host}:{self.message[0].port}>> {self.message[1]}.")
-
-                    # As the master, receiving node's request for a role
-                    if message_class.ask_role in self.message[1] and not master[0]:
-                        node_specifier = f"{self.message[0].host}:{self.message[0].port}"
+                # As the master, receiving node's request for a role
+                if message_class.ask_role in self.message[1] and not self.master[0]:
+                    # The node that requests a role
+                    node_specifier = f"{self.message[0].host}:{self.message[0].port}"
+                    # Choose the role
+                    if not self.role_list["I"]:
+                        chosen_role = "I"
+                    elif not self.role_list["M"]:
+                        chosen_role = "M"
+                    elif not self.role_list["A"]:
+                        chosen_role = "A"
+                    else:
                         chosen_role = random.choice(["I", "A", "M"])
-                        self.role_list[chosen_role].append(node_specifier)
-                        self.send_to_node(n=self.nodes_map[node_specifier], data=message_class.set_role+chosen_role)
-                        # print(f"Giving {node_specifier} the role of {chosen_role}.", self.role_list)
+                    # Record the role and send the role to the requester
+                    self.role_list[chosen_role].append(node_specifier)
+                    self.send_to_node(n=self.nodes_map[node_specifier], data=message_class.set_role+chosen_role)
+                    # print(f"Giving {node_specifier} the role of {chosen_role}.", self.role_list)
 
-                    # As a non-master, receiving a role from the master
-                    if message_class.set_role in self.message[1] and master[0]:
-                        role = self.message[1][-1]
-                        if role == "I":
-                            self.roles[0] = 1
-                        elif role == "M":
-                            self.roles[1] = 1
-                        elif role == "A":
-                            self.roles[2] = 1
-                        # print(f"Your role is {role}.", self.roles)
+                # As a non-master, receiving a role from the master
+                if message_class.set_role in self.message[1] and self.master[0]:
+                    self.role = self.message[1][-1]
+                    # print(f"Your role is {role}.", self.role)
 
 
-                    # As the master, receiving node's request for a service
-                    # TODO
+                # As the master, receiving node's request to leave
+                if message_class.leave in self.message[1] and not self.master[0]:
+                    leaving_role = self.message[1][-1]
+                    node_specifier = f"{self.message[0].host}:{self.message[0].port}"
+                    self.role_list[leaving_role].remove(node_specifier)
+                    del self.nodes_map[node_specifier]
 
 
-                    # reset the message and message_trigger
-                    self.message = None
-                    self.message_trigger = False
+                # As the master, receiving node's request for a service
+                # TODO
 
+
+                # reset the message and message_trigger
+                self.message = None
+                self.message_trigger = False
+
+
+    def my_start(self):
         self.start()
-        if master[0]:
-            master_node = self.connect_with_node(master[0], int(master[1]))
+        if self.master[0]: # not the master
+            master_node = self.connect_with_node(self.master[0], int(self.master[1]))
             self.send_to_node(master_node, message_class.ask_role)
-        else:
+        else: # being the master
             pass
-            # TODO
-                # IoT nodes calls the IoT services, and sends request to ML peers
-                # ML nodes calls the ML services
-                # whenever a node wants traffic info, it calls the XR nodes
-                # XR nodes calls the XR services and sends the image to the requester
 
-        t_receive = Thread(target=receiver)
+        # TODO
+            # IoT nodes calls the IoT services, and sends request to ML peers
+            # ML nodes calls the ML services
+            # whenever a node wants traffic info, it calls the XR nodes
+            # XR nodes calls the XR services and sends the image to the requester
+
+        t_receive = Thread(target=self.msg_receiver)
         t_receive.start()
 
-        while True:
-            input_command = input(
-"""
-Please input the command:\n
-\t [Q]uit the network\n
-\t [R]equest accident info\n
->>\t
-"""
-            )
+        while True and not self.terminate_flag.is_set():
+            input_command = input("-"*50 + "\n" + "Please input the command:\n\t [Q]uit the network\n\t [R]equest accident info\n>>\n" + "-"*50 + "\n")
             if input_command == "Q":
-                if master[0]:
-                    self.send_to_node(master_node, message_class.leave + str(self.roles))
-                    self.node_request_to_stop()
-                else:
+                if self.master[0]: # not the master
+                    self.send_to_node(master_node, message_class.leave+self.role)
+                    self.stop()
+                    t_receive.join()
+                    print("Receiver stopped.")
+                else: # being the master
                     # TODO
                         # From all inbound nodes randomly select one to be the new master
                         # Inform everyone that the master should change
                         # Tell the access server that the master changes
                     self.node_request_to_stop()
+            elif input_command == "R":
+                pass
+            elif input_command == "L" and not self.master[0]:
+                print("Debugging:")
+                print(self.nodes_map)
+                print(self.role_list)
 
 
 if __name__ == "__main__":
     myNode = TrafficAccidentSharingNode()
+    myNode.join()
+    print("Node stopped.")
 

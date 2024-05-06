@@ -38,6 +38,7 @@ class _MyHTTPServer(BaseHTTPRequestHandler):
                 self.end_headers()
                 _MASTER = [None, None]
                 self.wfile.write(b"Left.")
+                print("The master left without specifying a successor.")
             else:    # if is not from the master
                 self.send_response(403)
                 self.send_header("Content-type", "text/plain")

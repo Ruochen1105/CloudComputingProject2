@@ -8,11 +8,13 @@ from p2pnetwork.nodeconnection import NodeConnection
 
 
 class TrafficAccidentSharingNode(Node):
-    def __init__(self, host=""):
+    def __init__(self, host="", hostname: str="127.0.0.1", hostport: int=8421):
 
         port = self.find_available_port()
         super().__init__(host=host, port=port)
 
+        self.hostname = hostname
+        self.hostport = hostport
         self.message = None
         self.message_trigger = False
         self.role = None # [I]oT, [M]L, [A]R
@@ -48,15 +50,16 @@ class TrafficAccidentSharingNode(Node):
             s.close()
 
 
-    def ask_master(self, avail_port: int, hostname: str="127.0.0.1", port: int=8421) -> tuple | None:
+    def ask_master(self, avail_port: int) -> tuple | None:
         """
         Asks the access server to check who is the master.
         Returns a tuple. If the asker is the master, the tuple is (None, None), otherwise ({master_host}, {master_port}).
         """
-        url = f"http://{hostname}:{port}/"
+        url = f"http://{self.hostname}:{self.hostport}/"
         headers = {"port": str(avail_port)}
         try:
             response = requests.get(url, headers=headers)
+            print("here")
             if response.status_code == 200:
                 if response.headers["Master"] == "True":
                     return (None, None)
@@ -240,14 +243,26 @@ class TrafficAccidentSharingNode(Node):
         t_receive.start()
 
         while not self.terminate_flag.is_set():
+
             input_command = input("-"*50 + "\n" + "Please input the command:\n\t [Q]uit the network\n\t [R]equest accident info\n>>\n" + "-"*50 + "\n")
-            if input_command == "Q":
+
+            if input_command == "Q": # Quitting
                 if self.master[0]: # not the master
                     self.send_to_node(n=master_node, data={"type": "LEAVE", "ROLE": self.role})
                     self.stop()
                     t_receive.join()
                     print("Receiver stopped.")
                 else: # being the master
+                    if len(self.nodes_map) == 0: # No one else in the network
+                        url = f"http://{self.hostname}:{self.hostport}/leave"
+                        try:
+                            response = requests.get(url)
+                            if response.status_code == 200:
+                                self.stop()
+                                t_receive.join()
+                                print("Receiver stopped.")
+                        except requests.exceptions.RequestException as e:
+                            print(f"An error occurred: {e}")
                     pass
                     # TODO
                         # From all inbound nodes randomly select one to be the new master
@@ -256,9 +271,11 @@ class TrafficAccidentSharingNode(Node):
                     self.stop()
                     t_receive.join()
                     print("Receiver stopped.")
+
             elif input_command == "R":
                 pass
-            elif input_command == "L" and not self.master[0]:
+
+            elif input_command == "_L" and not self.master[0]: # For debugging purpose, list local attributes
                 print("Debugging:")
                 print(self.nodes_map)
                 print(self.role_list)

@@ -9,7 +9,7 @@ class _MyHTTPServer(BaseHTTPRequestHandler):
 
         global _MASTER
 
-        if self.path == "/":
+        if self.path == "/": # get the host and port of the master node
             self.send_response(200)
             self.send_header("Content-type", "text/plain")
             if _MASTER == [None, None]:    # when there is no master node
@@ -25,13 +25,13 @@ class _MyHTTPServer(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b"Please find the host and port of the master in the header.")
 
-        elif self.path == "/health":
+        elif self.path == "/health": # healthcheck
             self.send_response(200)
             self.send_header("Content-type", "text/plain")
             self.end_headers()
             self.wfile.write(b"The access server is working properly.")
 
-        elif self.path == "/leave":
+        elif self.path == "/leave": # the master node can leave the network if there are no more peers
             if _MASTER[0] == self.client_address[0]:    # if is from the master
                 self.send_response(200)
                 self.send_header("Content-type", "text/plain")
@@ -45,7 +45,7 @@ class _MyHTTPServer(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b"Forbidden.")
 
-        elif self.path == "/new":
+        elif self.path == "/new": # the master node leave the network while specifying a successor
             if _MASTER[0] == self.client_address[0]:    # if is from the master
                 self.send_response(200)
                 self.send_header("Contnent-type", "text/plain")

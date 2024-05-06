@@ -22,12 +22,17 @@ class TrafficAccidentSharingNode(Node):
         self.nodes_map = {}
 
         self.master = self.ask_master(avail_port=port)
-        if self.master[0]:
+        if not self.is_master:
             print("You are not the master. Connecting to the master node...")
         else:
             print("You are the master. Waiting for connections from peers...")
             self.roles = [1, 1, 1] # the master node can do everything
         self.my_start()
+
+
+    @property
+    def is_master(self):
+        return not self.master[0]
 
 
     def find_available_port(self) -> int:
@@ -163,7 +168,7 @@ class TrafficAccidentSharingNode(Node):
                 print(f"[Testing msg] {self.message[0].host}:{self.message[0].port}>> {self.message[1]}.")
 
                 # As the master, receiving node's request for a role
-                if self.message[1]["type"] == "ASKROLE" and not self.master[0]:
+                if self.message[1]["type"] == "ASKROLE" and self.is_master:
                     # The node that requests a role
                     node_specifier = f"{self.message[0].host}:{self.message[0].port}"
                     # Choose the role
@@ -181,13 +186,13 @@ class TrafficAccidentSharingNode(Node):
                     # print(f"Giving {node_specifier} the role of {chosen_role}.", self.role_list)
 
                 # As a non-master, receiving a role from the master
-                if self.message[1]["type"] == "SETROLE" and self.master[0]:
+                if self.message[1]["type"] == "SETROLE" and not self.is_master:
                     self.role = self.message[1]["ROLE"]
                     print(f"Your role is {self.role}.")
 
 
                 # As the master, receiving node's request to leave
-                if self.message[1]["type"] == "LEAVE" and not self.master[0]:
+                if self.message[1]["type"] == "LEAVE" and self.is_master:
                     leaving_role = self.message[1]["ROLE"]
                     node_specifier = f"{self.message[0].host}:{self.message[0].port}"
                     self.role_list[leaving_role].remove(node_specifier)
@@ -226,11 +231,13 @@ class TrafficAccidentSharingNode(Node):
 
 
     def my_start(self):
+
         self.start()
-        if self.master[0]: # not the master
+
+        if not self.is_master:
             master_node = self.connect_with_node(self.master[0], int(self.master[1]))
             self.send_to_node(n=master_node, data={"type": "ASKROLE"})
-        else: # being the master
+        else:
             pass
 
         # TODO
@@ -247,7 +254,7 @@ class TrafficAccidentSharingNode(Node):
             input_command = input("-"*50 + "\n" + "Please input the command:\n\t [Q]uit the network\n\t [R]equest accident info\n>>\n" + "-"*50 + "\n")
 
             if input_command == "Q": # Quitting
-                if self.master[0]: # not the master
+                if not self.is_master: # not the master
                     self.send_to_node(n=master_node, data={"type": "LEAVE", "ROLE": self.role})
                     self.stop()
                     t_receive.join()

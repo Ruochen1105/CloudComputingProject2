@@ -5,7 +5,6 @@ from threading import Thread
 
 from p2pnetwork.node import Node
 from p2pnetwork.nodeconnection import NodeConnection
-import message_class
 
 
 class TrafficAccidentSharingNode(Node):
@@ -156,37 +155,37 @@ class TrafficAccidentSharingNode(Node):
 
 
     def msg_receiver(self):
-        while True and not self.terminate_flag.is_set():
+        while not self.terminate_flag.is_set():
             if self.message_trigger:
                 print(f"[Testing msg] {self.message[0].host}:{self.message[0].port}>> {self.message[1]}.")
 
                 # As the master, receiving node's request for a role
-                if message_class.ask_role in self.message[1] and not self.master[0]:
+                if self.message[1]["type"] == "ASKROLE" and not self.master[0]:
                     # The node that requests a role
                     node_specifier = f"{self.message[0].host}:{self.message[0].port}"
                     # Choose the role
-                    if not self.role_list["I"]:
-                        chosen_role = "I"
+                    if not self.role_list["A"]: # Prioritize AR service
+                        chosen_role = "A"
                     elif not self.role_list["M"]:
                         chosen_role = "M"
-                    elif not self.role_list["A"]:
-                        chosen_role = "A"
+                    elif not self.role_list["I"]:
+                        chosen_role = "I"
                     else:
                         chosen_role = random.choice(["I", "A", "M"])
                     # Record the role and send the role to the requester
                     self.role_list[chosen_role].append(node_specifier)
-                    self.send_to_node(n=self.nodes_map[node_specifier], data=message_class.set_role+chosen_role)
+                    self.send_to_node(n=self.nodes_map[node_specifier], data={"type": "SETROLE", "ROLE": chosen_role})
                     # print(f"Giving {node_specifier} the role of {chosen_role}.", self.role_list)
 
                 # As a non-master, receiving a role from the master
-                if message_class.set_role in self.message[1] and self.master[0]:
-                    self.role = self.message[1][-1]
-                    # print(f"Your role is {role}.", self.role)
+                if self.message[1]["type"] == "SETROLE" and self.master[0]:
+                    self.role = self.message[1]["ROLE"]
+                    print(f"Your role is {self.role}.")
 
 
                 # As the master, receiving node's request to leave
-                if message_class.leave in self.message[1] and not self.master[0]:
-                    leaving_role = self.message[1][-1]
+                if self.message[1]["type"] == "LEAVE" and not self.master[0]:
+                    leaving_role = self.message[1]["ROLE"]
                     node_specifier = f"{self.message[0].host}:{self.message[0].port}"
                     self.role_list[leaving_role].remove(node_specifier)
                     del self.nodes_map[node_specifier]
@@ -201,11 +200,33 @@ class TrafficAccidentSharingNode(Node):
                 self.message_trigger = False
 
 
+    def IoT_service(self):
+        """
+        For the node to access the IoT service on the cloud.
+        """
+        print("IoT to be implemented")
+
+
+    def ML_service(self):
+        """
+        For the node to access the ML service on the cloud.
+        """
+        print("ML to be implemented.")
+
+
+
+    def AR_service(self):
+        """
+        For the node to access the AR service on the cloud.
+        """
+        print("AR to be implemented.")
+
+
     def my_start(self):
         self.start()
         if self.master[0]: # not the master
             master_node = self.connect_with_node(self.master[0], int(self.master[1]))
-            self.send_to_node(master_node, message_class.ask_role)
+            self.send_to_node(n=master_node, data={"type": "ASKROLE"})
         else: # being the master
             pass
 
@@ -218,20 +239,23 @@ class TrafficAccidentSharingNode(Node):
         t_receive = Thread(target=self.msg_receiver)
         t_receive.start()
 
-        while True and not self.terminate_flag.is_set():
+        while not self.terminate_flag.is_set():
             input_command = input("-"*50 + "\n" + "Please input the command:\n\t [Q]uit the network\n\t [R]equest accident info\n>>\n" + "-"*50 + "\n")
             if input_command == "Q":
                 if self.master[0]: # not the master
-                    self.send_to_node(master_node, message_class.leave+self.role)
+                    self.send_to_node(n=master_node, data={"type": "LEAVE", "ROLE": self.role})
                     self.stop()
                     t_receive.join()
                     print("Receiver stopped.")
                 else: # being the master
+                    pass
                     # TODO
                         # From all inbound nodes randomly select one to be the new master
                         # Inform everyone that the master should change
                         # Tell the access server that the master changes
-                    self.node_request_to_stop()
+                    self.stop()
+                    t_receive.join()
+                    print("Receiver stopped.")
             elif input_command == "R":
                 pass
             elif input_command == "L" and not self.master[0]:

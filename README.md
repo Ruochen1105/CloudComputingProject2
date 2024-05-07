@@ -46,7 +46,7 @@ The dataset used in this project is randomly sampled from all images of the two 
 
 ### P2P Framework
 
-[python-p2p](https://github.com/GianisTsol/python-p2p)
+[python-p2p-network](https://github.com/macsnoeren/python-p2p-network)
 
 ### gitignore
 

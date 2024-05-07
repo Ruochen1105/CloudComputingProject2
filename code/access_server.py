@@ -1,3 +1,6 @@
+"""
+Ruochen Miao rm5327 and Chengying Wang cw4450
+"""
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 _PORT = 8421
@@ -45,15 +48,15 @@ class _MyHTTPServer(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b"Forbidden.")
 
+        # it should be HTTP POST, but for the simplicity I'm also using GET
         elif self.path == "/new": # the master node leave the network while specifying a successor
             if _MASTER[0] == self.client_address[0]:    # if is from the master
                 self.send_response(200)
                 self.send_header("Contnent-type", "text/plain")
+                _MASTER[0] = self.headers["host"]
+                _MASTER[1] = self.headers["port"]
                 self.end_headers()
-                # TODO
-                    # Read the host and port of the new master and change the local record
-                    # it should be HTTP POST, but for the simplicity I'm also using GET
-                self.wfile.write(b"Success.")
+                self.wfile.write(b"New master recorded.")
             else:    # if is not from the master
                 self.send_response(403)
                 self.send_header("Content-type", "text/plain")

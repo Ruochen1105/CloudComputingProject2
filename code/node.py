@@ -18,7 +18,7 @@ class TrafficAccidentSharingNode(Node):
     def __init__(self, host="", hostname: str="127.0.0.1", hostport: int=8421):
 
         port = self.find_available_port()
-        super().__init__(host=host, port=port)
+        super().__init__(host=host, port=port, max_connections=999)
 
         self.hostname = hostname
         self.hostport = hostport
@@ -100,50 +100,49 @@ class TrafficAccidentSharingNode(Node):
                 print("connect_with_node: Already connected with this node (" + node.id + ").")
                 return None
 
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.debug_print(f"connecting to {host} port {port}")
-            sock.connect((host, port))
+        # try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((host, port))
 
-            # Basic information exchange (not secure) of the id's of the nodes!
-            sock.send((self.id + ":" + str(self.port)).encode('utf-8')) # Send my id and port to the connected node!
-            connected_node_id = sock.recv(4096).decode('utf-8') # When a node is connected, it sends its id!
+        # Basic information exchange (not secure) of the id's of the nodes!
+        sock.send((self.id + ":" + str(self.port)).encode('utf-8')) # Send my id and port to the connected node!
+        connected_node_id = sock.recv(4096).decode('utf-8') # When a node is connected, it sends its id!
 
-            # Cannot connect with yourself
-            if self.id == connected_node_id:
-                print("connect_with_node: You cannot connect with yourself?!")
+        # Cannot connect with yourself
+        if self.id == connected_node_id:
+            print("connect_with_node: You cannot connect with yourself?!")
+            sock.send("CLOSING: Already having a connection together".encode('utf-8'))
+            sock.close()
+            return None
+
+        # Fix bug: Cannot connect with nodes that are already connected with us!
+        #          Send message and close the socket.
+        for node in self.nodes_inbound:
+            if node.host == host and node.id == connected_node_id:
+                print("connect_with_node: This node (" + node.id + ") is already connected with us.")
                 sock.send("CLOSING: Already having a connection together".encode('utf-8'))
                 sock.close()
                 return None
 
-            # Fix bug: Cannot connect with nodes that are already connected with us!
-            #          Send message and close the socket.
-            for node in self.nodes_inbound:
-                if node.host == host and node.id == connected_node_id:
-                    print("connect_with_node: This node (" + node.id + ") is already connected with us.")
-                    sock.send("CLOSING: Already having a connection together".encode('utf-8'))
-                    sock.close()
-                    return None
+        thread_client = self.create_new_connection(sock, connected_node_id, host, port)
+        thread_client.start()
 
-            thread_client = self.create_new_connection(sock, connected_node_id, host, port)
-            thread_client.start()
+        self.nodes_outbound.add(thread_client)
+        self.outbound_node_connected(thread_client)
 
-            self.nodes_outbound.add(thread_client)
-            self.outbound_node_connected(thread_client)
+        # If reconnection to this host is required, it will be added to the list!
+        if reconnect:
+            self.debug_print("connect_with_node: Reconnection check is enabled on node " + host + ":" + str(port))
+            self.reconnect_to_nodes.append({
+                "host": host, "port": port, "tries": 0
+            })
 
-            # If reconnection to this host is required, it will be added to the list!
-            if reconnect:
-                self.debug_print("connect_with_node: Reconnection check is enabled on node " + host + ":" + str(port))
-                self.reconnect_to_nodes.append({
-                    "host": host, "port": port, "tries": 0
-                })
+        print(f"Now connected with {host}:{port}.")
+        return thread_client
 
-            print(f"Now connected with {host}:{port}.")
-            return thread_client
-
-        except Exception as e:
-            self.debug_print("TcpServer.connect_with_node: Could not connect with node. (" + str(e) + ")")
-            return None
+        # except Exception as e:
+        #     self.debug_print("TcpServer.connect_with_node: Could not connect with node. (" + str(e) + ")")
+        #     return None
 
 
     def inbound_node_connected(self, node):

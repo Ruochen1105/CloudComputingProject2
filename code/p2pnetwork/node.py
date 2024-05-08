@@ -303,11 +303,11 @@ class Node(threading.Thread):
 
         time.sleep(1)
 
-        for t in self.nodes_inbound:
-            t.join()
+        # for t in self.nodes_inbound:
+        #     t.join()
 
-        for t in self.nodes_outbound:
-            t.join()
+        # for t in self.nodes_outbound:
+        #     t.join()
 
         self.sock.settimeout(None)
         self.sock.close()

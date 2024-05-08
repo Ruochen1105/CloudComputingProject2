@@ -158,11 +158,6 @@ class TrafficAccidentSharingNode(Node):
             self.role_list = data["roles"]
 
 
-        # As a non-master, receiving peer's claim to be the new master
-        elif data["type"] == "CLAIMMASTER" and not self.is_master:
-            self.master = [node.host, node.port]
-
-
         elif data["type"] == "DISCONNECT":
             del self.nodes_map[f"{node.host}:{node.port}"]
 

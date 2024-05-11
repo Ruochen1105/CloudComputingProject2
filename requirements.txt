@@ -1,0 +1,3 @@
+pip install azure-eventhub
+pip install google-cloud-storage
+pip install azure-iot-device

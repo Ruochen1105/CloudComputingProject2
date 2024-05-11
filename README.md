@@ -30,47 +30,17 @@ These two datasets are sharing the following YOLOv8 file structure, except that 
 .
 ├── README.md
 ├── assets
-│   ├── accidents
-│   │   ├── 0.png
-│   │   ├── 1.png
-│   │   ├── 2.png
-│   │   ├── 3.png
-│   │   ├── 4.png
-│   │   ├── 5.png
-│   │   ├── 6.png
-│   │   ├── 7.png
-│   │   ├── 8.png
-│   │   └── 9.png
-│   └── no_accidents
-│       ├── 0.png
-│       ├── 1.png
-│       ├── 2.png
-│       ├── 3.png
-│       ├── 4.png
-│       ├── 5.png
-│       ├── 6.png
-│       ├── 7.png
-│       ├── 8.png
-│       └── 9.png
 ├── code
 │   ├── IoT
 │   │   ├── IoT.py
 │   │   ├── __init__.py
-│   │   ├── __pycache__
-│   │   │   └── local_config.cpython-311.pyc
 │   │   ├── cloudcomputing-415100-a9f3f6179657.json
 │   │   ├── local_config.py
 │   │   └── reader.py
-│   ├── __pycache__
-│   │   └── message_class.cpython-311.pyc
 │   ├── access_server.py
 │   ├── node.py
 │   ├── p2pnetwork
 │   │   ├── __init__.py
-│   │   ├── __pycache__
-│   │   │   ├── __init__.cpython-311.pyc
-│   │   │   ├── node.cpython-311.pyc
-│   │   │   └── nodeconnection.cpython-311.pyc
 │   │   ├── node.py
 │   │   ├── nodeconnection.py
 │   │   └── tests
@@ -79,8 +49,6 @@ These two datasets are sharing the following YOLOv8 file structure, except that 
 │   │       ├── test_node_compression.py
 │   │       └── test_nodeconnection.py
 │   └── scripts
-│       ├── __pycache__
-│       │   └── local_config.cpython-311.pyc
 │       ├── local_config.py
 │       └── sampling.py
 └── requirements.txt

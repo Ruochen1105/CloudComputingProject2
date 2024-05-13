@@ -2,27 +2,29 @@
 Communicate with the GCP ML service to get the prediction result
 Reference: github.com/googleapis/python-aiplatform/blob/main/samples/snippets/prediction_service/predict_image_classification_sample.py
 """
-import local_config
-
+import os
 import base64
 
 from google.cloud import aiplatform
 from google.cloud.aiplatform.gapic.schema import predict
 from google.oauth2.service_account import Credentials
 
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
+
 
 def predict_image_classification_sample(
-    project: str = local_config.project,
-    endpoint_id: str = local_config.endpoint_id,
+    project: str = os.getenv("project"),
+    endpoint_id: str = os.getenv("endpoint_id"),
     filename: str = "./assets/accidents/0.png",
-    location: str = local_config.location,
-    api_endpoint: str = local_config.api_endpoint,
+    location: str = os.getenv("location"),
+    api_endpoint: str = os.getenv("api_endpoint"),
 ):
     # The AI Platform services require regional API endpoints.
     client_options = {"api_endpoint": api_endpoint}
     # Initialize client that will be used to create and send requests.
     # This client only needs to be created once, and can be reused for multiple requests.
-    cred = Credentials.from_service_account_file(local_config.cred)
+    cred = Credentials.from_service_account_file(os.getenv("cred"))
     client = aiplatform.gapic.PredictionServiceClient(credentials=cred, client_options=client_options)
     with open(filename, "rb") as f:
         file_content = f.read()

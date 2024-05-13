@@ -9,6 +9,7 @@ import requests
 
 from p2pnetwork.node import Node
 from p2pnetwork.nodeconnection import NodeConnection
+from iot.iot import IoT_object
 
 
 class TrafficAccidentSharingNode(Node):
@@ -140,6 +141,9 @@ class TrafficAccidentSharingNode(Node):
         elif data["type"] == "SETROLE" and not self.is_master:
             self.role = data["ROLE"]
             print(f"Your role is {self.role}.")
+            if self.role == "I":
+                t = Thread(target=self.IoT_service)
+                t.start()
 
 
         # As the master, receiving node's request to leave
@@ -170,7 +174,10 @@ class TrafficAccidentSharingNode(Node):
         """
         For the node to access the IoT service on the cloud.
         """
-        print("IoT to be implemented")
+        print("here")
+        my_iot_object = IoT_object()
+        while not self.terminate_flag.is_set():
+            my_iot_object.upload_to_iot_hub()
 
 
     def ML_service(self):
@@ -178,7 +185,6 @@ class TrafficAccidentSharingNode(Node):
         For the node to access the ML service on the cloud.
         """
         print("ML to be implemented.")
-
 
 
     def AR_service(self):
@@ -197,12 +203,6 @@ class TrafficAccidentSharingNode(Node):
         if not self.is_master:
             self.connect_with_node(self.master[0], int(self.master[1]))
             self.send_to_node(n=self.nodes_map[f"{self.master[0]}:{self.master[1]}"], data={"type": "ASKROLE"})
-
-        # TODO
-            # IoT nodes calls the IoT services, and sends request to ML peers
-            # ML nodes calls the ML services
-            # whenever a node wants traffic info, it calls the XR nodes
-            # XR nodes calls the XR services and sends the image to the requester
 
         while not self.terminate_flag.is_set():
 

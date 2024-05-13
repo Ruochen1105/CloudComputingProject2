@@ -3,3 +3,4 @@ pip install google-cloud-storage
 pip install azure-iot-device
 pip install pymysql
 pip install google-cloud-aiplatform
+pip install python-dotenv

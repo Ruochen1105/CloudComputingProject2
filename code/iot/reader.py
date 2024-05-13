@@ -3,14 +3,16 @@ Read the telemetry data sent to the Azure IoT Hub
 Reference: github.com/Azure-Samples/azure-iot-samples-python/blob/master/iot-hub/Quickstarts/read-d2c-messages/read_device_to_cloud_messages_sync.py
 """
 import json
+import os
 
 from azure.eventhub import TransportType
 from azure.eventhub import EventHubConsumerClient
 
-import local_config
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 
 
-CONNECTION_STR = local_config.connection_str
+CONNECTION_STR = os.getenv("connection_str")
 
 
 def on_event_batch(partition_context, events):

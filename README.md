@@ -13,6 +13,7 @@
 │   ├── accidents
 │   └── no_accidents
 ├── code
+│   ├── .env
 │   ├── iot
 │   │   ├── iot.py
 │   │   ├── __init__.py
@@ -41,14 +42,6 @@
 │       ├── local_config.py
 │       └── sampling.py
 └── requirements.txt
-```
-
-## local_config.py
-
-A naive way to prevent local credentials from being synchnronized to GitHub.
-
-```python
-variable_name = variable_value
 ```
 
 ## Dataset

@@ -7,16 +7,48 @@
 ## File Structure
 
 ```
-
+.
+├── README.md
+├── assets
+│   ├── accidents
+│   └── no_accidents
+├── code
+│   ├── IoT
+│   │   ├── IoT.py
+│   │   ├── __init__.py
+│   │   ├── local_config.py
+│   │   └── reader.py
+│   ├── ML
+│   │   ├── ML.py
+│   │   ├── __init__.py
+│   │   └── local_config.py
+│   ├── access_server.py
+│   ├── db
+│   │   ├── __init__.py
+│   │   ├── db.py
+│   │   └── local_config.py
+│   ├── node.py
+│   ├── p2pnetwork
+│   │   ├── __init__.py
+│   │   ├── node.py
+│   │   ├── nodeconnection.py
+│   │   └── tests
+│   │       ├── __init__.py
+│   │       ├── test_node.py
+│   │       ├── test_node_compression.py
+│   │       └── test_nodeconnection.py
+│   └── scripts
+│       ├── local_config.py
+│       └── sampling.py
+└── requirements.txt
 ```
 
 ## local_config.py
 
-```python
-from os import path
+A naive way to prevent local credentials from being synchnronized to GitHub.
 
-ROOT_PATH = path.join("path to root folder of datasets")
-DESTINATION_PATH = path.join("root to destination of sampled images")
+```python
+variable_name = variable_value
 ```
 
 ## Dataset
@@ -28,30 +60,16 @@ The images with accidents are from [Vehicle Crash Dataset Computer Vision Projec
 These two datasets are sharing the following YOLOv8 file structure, except that "Vehicle Crash Dataset Computer Vision Project" does not have "valid" and "test":
 ```
 .
-├── README.md
-├── assets
-├── code
-│   ├── IoT
-│   │   ├── IoT.py
-│   │   ├── __init__.py
-│   │   ├── cloudcomputing-415100-a9f3f6179657.json
-│   │   ├── local_config.py
-│   │   └── reader.py
-│   ├── access_server.py
-│   ├── node.py
-│   ├── p2pnetwork
-│   │   ├── __init__.py
-│   │   ├── node.py
-│   │   ├── nodeconnection.py
-│   │   └── tests
-│   │       ├── __init__.py
-│   │       ├── test_node.py
-│   │       ├── test_node_compression.py
-│   │       └── test_nodeconnection.py
-│   └── scripts
-│       ├── local_config.py
-│       └── sampling.py
-└── requirements.txt
+├── ...              # meta info
+├── test
+│   ├── labels       # not used
+│   └── images
+│       ├── ...
+│       └── {image_name}.jpg
+├── trian
+│   └── ...
+└── valid
+    └── ...
 ```
 
 The dataset used in this project is randomly sampled from all images of the two public datasets. The script used is `./code/scripts/sampling.py`.

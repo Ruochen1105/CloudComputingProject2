@@ -174,7 +174,6 @@ class TrafficAccidentSharingNode(Node):
         """
         For the node to access the IoT service on the cloud.
         """
-        print("here")
         my_iot_object = IoT_object()
         while not self.terminate_flag.is_set():
             my_iot_object.upload_to_iot_hub()

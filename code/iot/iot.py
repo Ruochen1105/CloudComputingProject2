@@ -51,10 +51,8 @@ class IoT_object():
         MSG_TXT = str(self.generate_data())
         message = Message(MSG_TXT)
         client.send_message(message)
-        print("Message successfully sent")
-        sleep(10)
-
         client.shutdown()
+        sleep(10)
 
 
 def main():

@@ -3,6 +3,7 @@ Ruochen Miao rm5327 and Chengying Wang cw4450
 """
 import random
 import socket
+import json
 from threading import Thread
 import requests
 
@@ -10,6 +11,7 @@ import requests
 from p2pnetwork.node import Node
 from p2pnetwork.nodeconnection import NodeConnection
 from iot.iot import IoT_object
+import iot.reader
 
 
 class TrafficAccidentSharingNode(Node):
@@ -87,6 +89,18 @@ class TrafficAccidentSharingNode(Node):
             print(f"An error occurred: {e}")
 
 
+    def send_to_nodes(self, data, exclude=[], compression='none'):
+        """
+        Override to use self.nodes_map
+        """
+        self.message_count_send = self.message_count_send + 1
+        for n in self.nodes_map:
+            if n in exclude:
+                self.debug_print("Node send_to_nodes: Excluding node in sending the message")
+            else:
+                self.send_to_node(n, data, compression)
+
+
     def inbound_node_connected(self, node):
         """
         When receiving a connection, makes the connection accessable thru host+port
@@ -99,7 +113,6 @@ class TrafficAccidentSharingNode(Node):
         When establishing a connection, makes the connection accessable thru host+port
         """
         self.nodes_map[f"{node.host}:{node.port}"] = node
-
 
     def node_message(self, node, data):
         """
@@ -144,6 +157,9 @@ class TrafficAccidentSharingNode(Node):
             if self.role == "I":
                 t = Thread(target=self.IoT_service)
                 t.start()
+            elif self.role == "M":
+                t = Thread(target=self.ML_service)
+                t.start()
 
 
         # As the master, receiving node's request to leave
@@ -183,7 +199,22 @@ class TrafficAccidentSharingNode(Node):
         """
         For the node to access the ML service on the cloud.
         """
-        print("ML to be implemented.")
+        def my_on_event_batch(partition_context, events):
+            for event in events:
+                print(json.loads(event.body_as_str().replace("\'", "\"")))
+
+            partition_context.update_checkpoint()
+
+        client = iot.reader.EventHubConsumerClient.from_connection_string(
+            conn_str=iot.reader.CONNECTION_STR,
+            consumer_group="$default",
+        )
+        while not self.terminate_flag.is_set():
+            with client:
+                client.receive_batch(
+                    on_event_batch=my_on_event_batch,
+                    on_error=iot.reader.on_error
+                )
 
 
     def AR_service(self):

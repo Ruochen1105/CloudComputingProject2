@@ -13,13 +13,13 @@
 │   ├── accidents
 │   └── no_accidents
 ├── code
-│   ├── IoT
-│   │   ├── IoT.py
+│   ├── iot
+│   │   ├── iot.py
 │   │   ├── __init__.py
 │   │   ├── local_config.py
 │   │   └── reader.py
-│   ├── ML
-│   │   ├── ML.py
+│   ├── ml
+│   │   ├── ml.py
 │   │   ├── __init__.py
 │   │   └── local_config.py
 │   ├── access_server.py

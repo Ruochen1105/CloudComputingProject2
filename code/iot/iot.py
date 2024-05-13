@@ -16,7 +16,6 @@ load_dotenv(find_dotenv())
 
 class IoT_object():
     def __init__(self):
-        path_to_cred = os.getenv("path_to_cred")
         storage_client = storage.Client.from_service_account_json(os.getenv("path_to_cred"))
         self._wd = os.getenv("wd")
         self._bucket = storage_client.bucket(os.getenv("bucket_name"))
@@ -25,7 +24,7 @@ class IoT_object():
 
 
     def generate_data(self) -> dict:
-        generated_data = {"image": None, "longtitude": None, "latitude": None}
+        generated_data = {"image": None, "longitude": None, "latitude": None}
 
         all_images = [f"accidents/{i}.png" for i in range(10)] + [f"no_accidents/{i}.png" for i in range(10)]
         selected_image = os.path.join(self._wd, "assets", random.sample(population=all_images, k=1)[0])
@@ -34,10 +33,10 @@ class IoT_object():
         blob.upload_from_filename(selected_image)
 
         simulated_latitude = (random.random() - 0.5) * 180    # -90 - 90
-        simulated_longtitude = (random.random() - 0.5) * 360    # -180 - 180
+        simulated_longitude = (random.random() - 0.5) * 360    # -180 - 180
 
-        generated_data["image"] = f"https://storage.cloud.google.com/{self._bucket_name}/{blob_name}"
-        generated_data["longtitude"] = simulated_longtitude
+        generated_data["image"] = blob_name
+        generated_data["longitude"] = simulated_longitude
         generated_data["latitude"] = simulated_latitude
 
         return generated_data

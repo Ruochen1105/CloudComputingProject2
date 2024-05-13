@@ -1,17 +1,24 @@
 """
 Ruochen Miao rm5327 and Chengying Wang cw4450
 """
+import os
 import random
 import socket
 import json
 from threading import Thread
 import requests
 
+from google.cloud import storage
+
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
+
 
 from p2pnetwork.node import Node
 from p2pnetwork.nodeconnection import NodeConnection
 from iot.iot import IoT_object
 import iot.reader
+from ml.ml import predict_image_classification_sample
 
 
 class TrafficAccidentSharingNode(Node):
@@ -94,11 +101,11 @@ class TrafficAccidentSharingNode(Node):
         Override to use self.nodes_map
         """
         self.message_count_send = self.message_count_send + 1
-        for n in self.nodes_map:
-            if n in exclude:
+        for k, v in self.nodes_map.items():
+            if k in exclude:
                 self.debug_print("Node send_to_nodes: Excluding node in sending the message")
             else:
-                self.send_to_node(n, data, compression)
+                self.send_to_node(v, data, compression)
 
 
     def inbound_node_connected(self, node):
@@ -201,7 +208,17 @@ class TrafficAccidentSharingNode(Node):
         """
         def my_on_event_batch(partition_context, events):
             for event in events:
-                print(json.loads(event.body_as_str().replace("\'", "\"")))
+                receive = json.loads(event.body_as_str().replace("\'", "\""))
+                image_file_url = receive["image"]
+                longitude = receive["longitude"]
+                latitude = receive["latitude"]
+                storage_client = storage.Client.from_service_account_json(os.getenv("path_to_cred"))
+                bucket = storage_client.bucket(os.getenv("bucket_name"))
+                blob = bucket.blob(image_file_url)
+                with blob.open("rb") as f:
+                    fc = f.read()
+                    prediction = predict_image_classification_sample(file_content = fc)
+
 
             partition_context.update_checkpoint()
 

@@ -19,17 +19,20 @@ from p2pnetwork.nodeconnection import NodeConnection
 from iot.iot import IoT_object
 import iot.reader
 from ml.ml import predict_image_classification_sample
+from db.db import db_object
 
 
 class TrafficAccidentSharingNode(Node):
     """
     Node of the proejct
     """
-    def __init__(self, host="", hostname: str="127.0.0.1", hostport: int=8421):
+    def __init__(self, host="127.0.0.1", hostname: str="127.0.0.1", hostport: int=8421):
 
         port = self.find_available_port()
         super().__init__(host=host, port=port, max_connections=999)
 
+        self.host = host
+        self.port = port
         self.hostname = hostname
         self.hostport = hostport
         self.message = None
@@ -102,10 +105,7 @@ class TrafficAccidentSharingNode(Node):
         """
         self.message_count_send = self.message_count_send + 1
         for k, v in self.nodes_map.items():
-            if k in exclude:
-                self.debug_print("Node send_to_nodes: Excluding node in sending the message")
-            else:
-                self.send_to_node(v, data, compression)
+            self.send_to_node(v, data, compression)
 
 
     def inbound_node_connected(self, node):
@@ -125,7 +125,7 @@ class TrafficAccidentSharingNode(Node):
         """
         Override to handle income messages
         """
-        print(f"[Testing msg] {node.host}:{node.port}>> {data}.") # Debugging purpose
+        # print(f"[Testing msg] {node.host}:{node.port}>> {data}.") # Debugging purpose
 
         # As the master, receiving node's request for a role
         if data["type"] == "ASKROLE" and self.is_master:
@@ -183,6 +183,7 @@ class TrafficAccidentSharingNode(Node):
         elif data["type"] == "INHERIT":
             self.master = [None, None]
             self.role_list = data["roles"]
+            print("You are the new master.")
 
 
         elif data["type"] == "DISCONNECT":
@@ -190,7 +191,18 @@ class TrafficAccidentSharingNode(Node):
 
 
         # As the master, receiving node's request for a service
-        # TODO
+        elif data["type"] == "REQUEST" and self.is_master:
+            AR_server = random.sample(population=self.role_list["A"], k=1)[0]
+            self.send_to_node(n=self.nodes_map[AR_server], data={"type": "SERVE", "requester": f"{node.host}:{node.port}"})
+
+
+        elif data["type"] == "SERVE" and self.role == "A":
+            AR_content = self.AR_service()
+            self.send_to_node(n=self.nodes_map[data["requester"]], data={"type": "CONTENT", "content": str(AR_content)})
+
+
+        elif data["type"] == "CONTENT":
+            print(data["content"])
 
 
     def IoT_service(self):
@@ -218,8 +230,13 @@ class TrafficAccidentSharingNode(Node):
                 with blob.open("rb") as f:
                     fc = f.read()
                     prediction = predict_image_classification_sample(file_content = fc)
-
-
+                    my_db_object = db_object()
+                    my_db_object.create_one(
+                        image=image_file_url,
+                        longitude=longitude,
+                        latitude=latitude,
+                        accident=int(prediction == "accident")
+                    )
             partition_context.update_checkpoint()
 
         client = iot.reader.EventHubConsumerClient.from_connection_string(
@@ -238,7 +255,8 @@ class TrafficAccidentSharingNode(Node):
         """
         For the node to access the AR service on the cloud.
         """
-        print("AR to be implemented.")
+        my_db_object = db_object()
+        return my_db_object.fetch_all()[-5:]
 
 
     def my_start(self):
@@ -292,7 +310,13 @@ class TrafficAccidentSharingNode(Node):
                             print(f"An error occurred: {e}")
 
             elif input_command == "R":
-                pass
+                if self.role == "A":
+                    print(self.AR_service())
+                elif not self.is_master:
+                    self.send_to_node(n=self.nodes_map[f"{self.master[0]}:{self.master[1]}"], data={"type": "REQUEST"})
+                else:
+                    AR_server = random.sample(population=self.role_list["A"], k=1)[0]
+                    self.send_to_node(n=self.nodes_map[AR_server], data={"type": "SERVE", "requester": f"{self.host}:{self.port}"})
 
             elif input_command == "_L": # For debugging purpose, print local attributes
                 print("Debugging:")

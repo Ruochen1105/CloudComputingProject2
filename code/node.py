@@ -13,7 +13,6 @@ from google.cloud import storage
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
-
 from p2pnetwork.node import Node
 from p2pnetwork.nodeconnection import NodeConnection
 from iot.iot import IoT_object
